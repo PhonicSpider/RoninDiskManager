@@ -1,0 +1,22 @@
+<Application x:Class="RoninDiskManager.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Crimson.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Override base background to near-black -->
+            <SolidColorBrush x:Key="MahApps.Brushes.ThemeBackground"          Color="#0A0A0A"/>
+            <SolidColorBrush x:Key="MahApps.Brushes.ThemeForeground"          Color="#D0D0D0"/>
+            <SolidColorBrush x:Key="MahApps.Brushes.Separator"                Color="#2A0808"/>
+            <!-- Title bar area — pure black so the icon stands out -->
+            <SolidColorBrush x:Key="MahApps.Brushes.WindowTitleBackground"    Color="#000000"/>
+            <SolidColorBrush x:Key="MahApps.Brushes.WindowButtonCommands.Background" Color="#000000"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
