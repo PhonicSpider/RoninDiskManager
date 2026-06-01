@@ -55,7 +55,7 @@ On NTFS drives it reads the Master File Table directly via the USN journal (the 
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/RoninDiskManager.git
+git clone https://github.com/PhonicSpider/RoninDiskManager.git
 cd RoninDiskManager
 
 # Run (builds automatically)
