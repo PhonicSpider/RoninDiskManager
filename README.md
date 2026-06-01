@@ -51,9 +51,21 @@ On NTFS drives it reads the Master File Table directly via the USN journal (the 
 
 ## Getting Started
 
-### Run from source
+### Download & Run (easiest)
 
-```bash
+1. Go to the [**Releases**](https://github.com/PhonicSpider/RoninDiskManager/releases/latest) page
+2. Download `RoninDiskManager.exe` under the latest release
+3. Right-click → **Run as Administrator**
+
+No installation or .NET runtime required — the exe is fully self-contained.
+
+---
+
+### Run from source (for local changes)
+
+Requires [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+
+```powershell
 # Clone the repository
 git clone https://github.com/PhonicSpider/RoninDiskManager.git
 cd RoninDiskManager
@@ -62,13 +74,12 @@ cd RoninDiskManager
 dotnet run --project RoninDiskManager/RoninDiskManager.csproj
 ```
 
-> **Note:** Run your terminal as Administrator, or Windows will prompt for elevation on launch.
+> Run your terminal as Administrator, or Windows will prompt for elevation on launch.
 
-### Build a standalone executable
+### Build your own standalone executable
 
-```bash
-dotnet publish RoninDiskManager/RoninDiskManager.csproj \
-  -c Release -r win-x64 --self-contained
+```powershell
+dotnet publish RoninDiskManager/RoninDiskManager.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 ```
 
 Output: `RoninDiskManager/bin/Release/net8.0-windows/win-x64/publish/RoninDiskManager.exe`
