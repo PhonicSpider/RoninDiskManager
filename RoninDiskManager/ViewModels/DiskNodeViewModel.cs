@@ -23,10 +23,20 @@ public partial class DiskNodeViewModel : ObservableObject
             Children.Add(CreatePlaceholder());
     }
 
-    public string Name => _node.Name;
-    public string FullPath => _node.FullPath;
-    public bool IsDirectory => _node.IsDirectory;
-    public long SizeBytes => _node.SizeBytes;
+    public string Name        => _node.Name;
+    public string FullPath    => _node.FullPath;
+    public bool   IsDirectory => _node.IsDirectory;
+    public long   SizeBytes   => _node.SizeBytes;
+
+    /// <summary>Raw count of direct children from the scan model (not lazy-loaded VM children).</summary>
+    public int DirectChildCount => _node.Children.Count;
+
+    public string ChildCountText => _node.Children.Count switch
+    {
+        0 => "no items",
+        1 => "1 item",
+        _ => $"{_node.Children.Count:N0} items"
+    };
 
     public string SizeDisplay
     {
@@ -43,6 +53,32 @@ public partial class DiskNodeViewModel : ObservableObject
 
             double pct = _node.SizeBytes / (double)_rootSize * 100;
             return $"  [{size} / {pct:F1}%]";
+        }
+    }
+
+    /// <summary>Rich multi-line tooltip shown on tree nodes.</summary>
+    public string ToolTipText
+    {
+        get
+        {
+            if (_node.SizeBytes <= 0) return _node.FullPath;
+
+            string size = _node.SizeBytes switch
+            {
+                >= 1_073_741_824 => $"{_node.SizeBytes / 1_073_741_824.0:F2} GB",
+                >= 1_048_576     => $"{_node.SizeBytes / 1_048_576.0:F1} MB",
+                _                => $"{_node.SizeBytes / 1024.0:F0} KB"
+            };
+            double pct = _node.SizeBytes / (double)_rootSize * 100;
+
+            var lines = new System.Text.StringBuilder();
+            lines.AppendLine(_node.FullPath);
+            lines.AppendLine($"Size:   {size}  ({pct:F2}% of root)");
+            if (_node.IsDirectory)
+                lines.Append($"Items:  {ChildCountText}");
+            else
+                lines.Append($"Type:   file");
+            return lines.ToString();
         }
     }
 

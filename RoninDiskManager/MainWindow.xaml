@@ -4,6 +4,7 @@
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:vm="clr-namespace:RoninDiskManager.ViewModels"
         xmlns:conv="clr-namespace:RoninDiskManager.Converters"
+        xmlns:ctrl="clr-namespace:RoninDiskManager.Controls"
         Title="Ronin Disk Manager"
         Icon="Assets/icon.ico"
         Height="820" Width="1280"
@@ -14,12 +15,14 @@
         BorderThickness="1">
 
     <mah:MetroWindow.Resources>
-        <conv:NullToVisibilityConverter  x:Key="NullToVis"/>
-        <conv:InverseBoolConverter       x:Key="InvBool"/>
-        <BooleanToVisibilityConverter    x:Key="BoolToVis"/>
+        <conv:NullToVisibilityConverter          x:Key="NullToVis"/>
+        <conv:InverseBoolConverter               x:Key="InvBool"/>
+        <BooleanToVisibilityConverter            x:Key="BoolToVis"/>
+        <conv:InverseBoolToVisibilityConverter   x:Key="InvBoolToVis"/>
 
-        <!-- ── Ronin brand colours ──────────────────────────────────────────── -->
+        <!-- ── Ronin brand colours ─────────────────────────────────────────── -->
         <SolidColorBrush x:Key="Ronin.Orange"       Color="#E06020"/>
+        <SolidColorBrush x:Key="Ronin.OrangeDim"    Color="#7A3010"/>
         <SolidColorBrush x:Key="Ronin.Cyan"         Color="#00C0D8"/>
         <SolidColorBrush x:Key="Ronin.CyanBright"   Color="#00D8F0"/>
         <SolidColorBrush x:Key="Ronin.CyanDim"      Color="#2A7A8A"/>
@@ -27,38 +30,107 @@
         <SolidColorBrush x:Key="Ronin.PanelBg"      Color="#0B0507"/>
         <SolidColorBrush x:Key="Ronin.Border"       Color="#3A0A0A"/>
         <SolidColorBrush x:Key="Ronin.BorderSubtle" Color="#1A0606"/>
+        <SolidColorBrush x:Key="Ronin.BorderHover"  Color="#6A1010"/>
         <SolidColorBrush x:Key="Ronin.TextDim"      Color="#505050"/>
+        <SolidColorBrush x:Key="Ronin.TextMid"      Color="#909090"/>
         <SolidColorBrush x:Key="Ronin.ConsoleBg"    Color="#060606"/>
+        <SolidColorBrush x:Key="Ronin.SelectBg"     Color="#1A0808"/>
+        <SolidColorBrush x:Key="Ronin.HoverBg"      Color="#131313"/>
 
-        <!-- ── Section header label ──────────────────────────────────────────── -->
+        <!-- ── Section header label ───────────────────────────────────────── -->
         <Style x:Key="SectionLabel" TargetType="TextBlock">
-            <Setter Property="FontSize"   Value="9"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="{StaticResource Ronin.Orange}"/>
-            <Setter Property="Margin"     Value="0,12,0,5"/>
+            <Setter Property="FontSize"      Value="9"/>
+            <Setter Property="FontWeight"    Value="Bold"/>
+            <Setter Property="Foreground"    Value="{StaticResource Ronin.Orange}"/>
+            <Setter Property="Margin"        Value="0,12,0,5"/>
         </Style>
 
-        <!-- ── Compact flag checkbox ─────────────────────────────────────────── -->
+        <!-- ── Compact flag checkbox ──────────────────────────────────────── -->
         <Style x:Key="FlagCheck" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
             <Setter Property="Margin" Value="0,3,0,3"/>
         </Style>
+
+        <!-- ── Tree item hover + selection style ─────────────────────────── -->
+        <Style x:Key="RoninTreeItem" TargetType="TreeViewItem"
+               BasedOn="{StaticResource {x:Type TreeViewItem}}">
+            <Setter Property="IsExpanded"  Value="{Binding IsExpanded, Mode=TwoWay}"/>
+            <Setter Property="IsSelected"  Value="{Binding IsSelected,  Mode=TwoWay}"/>
+            <Setter Property="Padding"     Value="2,3"/>
+            <Setter Property="Foreground"  Value="#C8C8C8"/>
+            <Setter Property="Background"  Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Ronin.HoverBg}"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Ronin.SelectBg}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Ronin.CyanBright}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ── Rich tooltip style ─────────────────────────────────────────── -->
+        <Style x:Key="RoninTooltip" TargetType="ToolTip">
+            <Setter Property="Background"       Value="#0F0F0F"/>
+            <Setter Property="Foreground"       Value="#C8C8C8"/>
+            <Setter Property="BorderBrush"      Value="{StaticResource Ronin.Border}"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="Padding"          Value="10,7"/>
+            <Setter Property="FontFamily"       Value="Consolas"/>
+            <Setter Property="FontSize"         Value="11"/>
+            <Setter Property="HasDropShadow"    Value="True"/>
+        </Style>
+
+        <!-- ── Context menu style ─────────────────────────────────────────── -->
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background"      Value="#111111"/>
+            <Setter Property="BorderBrush"     Value="{StaticResource Ronin.Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"         Value="0,3"/>
+        </Style>
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground"  Value="#C8C8C8"/>
+            <Setter Property="Background"  Value="Transparent"/>
+            <Setter Property="FontSize"    Value="12"/>
+            <Setter Property="Padding"     Value="10,5"/>
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Ronin.SelectBg}"/>
+                    <Setter Property="Foreground" Value="{StaticResource Ronin.CyanBright}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{StaticResource Ronin.TextDim}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="Separator">
+            <Setter Property="Background" Value="{StaticResource Ronin.Border}"/>
+            <Setter Property="Margin"     Value="6,3"/>
+        </Style>
+
     </mah:MetroWindow.Resources>
 
     <Grid Background="#0A0A0A">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="185" MinHeight="60"/>
+            <RowDefinition Height="Auto"/>   <!-- scan bar         -->
+            <RowDefinition Height="*"/>      <!-- main content     -->
+            <RowDefinition Height="Auto"/>   <!-- status bar       -->
+            <RowDefinition Height="5"/>      <!-- splitter         -->
+            <RowDefinition Height="185" MinHeight="60"/>  <!-- console -->
         </Grid.RowDefinitions>
 
-        <!-- ═══════════════════════════════════════════════════════ SCAN BAR -->
+        <!-- ══════════════════════════════════════════════════ SCAN BAR -->
         <Border Grid.Row="0"
-                Background="{StaticResource Ronin.Surface}"
                 BorderBrush="{StaticResource Ronin.Border}"
-                BorderThickness="0,0,0,1"
-                Padding="12,8,12,8">
-            <Grid>
+                BorderThickness="0,0,0,1">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#111111" Offset="0"/>
+                    <GradientStop Color="#0A0A0A" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid Margin="12,8,12,8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -67,15 +139,21 @@
                 <DockPanel Grid.Row="0" LastChildFill="True">
                     <Button DockPanel.Dock="Right"
                             Command="{Binding ScanCommand}"
-                            IsEnabled="{Binding IsScanning, Converter={StaticResource InvBool}}"
+                            IsEnabled="{Binding IsOperationRunning, Converter={StaticResource InvBool}}"
                             Content="▶   Scan"
                             Width="90" Margin="6,0,0,0"
                             Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
                     <Button DockPanel.Dock="Right"
+                            Command="{Binding SearchAllDrivesCommand}"
+                            IsEnabled="{Binding IsOperationRunning, Converter={StaticResource InvBool}}"
+                            Content="🔍  Search"
+                            Width="100" Margin="4,0,0,0"
+                            Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
+                    <Button DockPanel.Dock="Right"
                             Command="{Binding CancelScanCommand}"
-                            IsEnabled="{Binding IsScanning}"
+                            IsEnabled="{Binding IsOperationRunning}"
                             Content="✖" Width="34" Margin="4,0,0,0"
-                            ToolTip="Cancel scan"/>
+                            ToolTip="Cancel current operation"/>
                     <Button DockPanel.Dock="Right"
                             Command="{Binding BrowseScanPathCommand}"
                             Content="…" Width="34" Margin="4,0,0,0"
@@ -84,7 +162,7 @@
                                Text="📂" FontSize="15"
                                Foreground="{StaticResource Ronin.Orange}"
                                VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBox Text="{Binding ScanPath, UpdateSourceTrigger=PropertyChanged}"
+                    <TextBox Text="{Binding InputQuery, UpdateSourceTrigger=PropertyChanged}"
                              FontSize="13" VerticalContentAlignment="Center"
                              Background="#141414" Foreground="#D0D0D0"
                              BorderBrush="{StaticResource Ronin.Border}"
@@ -96,13 +174,13 @@
                 </DockPanel>
 
                 <TextBlock Grid.Row="1"
-                           Text="{Binding ScanStatus}"
+                           Text="{Binding StatusText}"
                            FontSize="11" Margin="0,4,0,0"
                            Foreground="{StaticResource Ronin.CyanDim}"/>
             </Grid>
         </Border>
 
-        <!-- ══════════════════════════════════ TREE VIEW + ACTION PANEL SPLIT -->
+        <!-- ═════════════════════════════ TREE VIEW + ACTION PANEL SPLIT -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" MinWidth="220"/>
@@ -110,242 +188,410 @@
                 <ColumnDefinition Width="340" MinWidth="300"/>
             </Grid.ColumnDefinitions>
 
-            <!-- ─────────────────────────────────────────────────── TREE VIEW -->
-            <TreeView Grid.Column="0"
-                      x:Name="DiskTree"
-                      ItemsSource="{Binding TreeRoots}"
-                      SelectedItemChanged="DiskTree_SelectedItemChanged"
-                      VirtualizingPanel.IsVirtualizing="True"
-                      VirtualizingPanel.VirtualizationMode="Recycling"
-                      Background="#080808"
-                      BorderThickness="0"
-                      ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <!-- ────────────────────── TREE / TREEMAP / SEARCH RESULTS -->
+            <!-- Pass VM as Tag so ContextMenu can bind to it via PlacementTarget -->
+            <TabControl Grid.Column="0"
+                        x:Name="LeftTabs"
+                        Background="#080808"
+                        BorderThickness="0"
+                        TabStripPlacement="Top"
+                        Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
 
-                <TreeView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel/>
-                    </ItemsPanelTemplate>
-                </TreeView.ItemsPanel>
+                <!-- ══════════════════════════════════════ TAB: TREE -->
+                <TabItem Header="  Tree  ">
+                    <Grid Background="#080808">
 
-                <TreeView.ItemContainerStyle>
-                    <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Type TreeViewItem}}">
-                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-                        <Setter Property="Padding"    Value="2,3"/>
-                        <Setter Property="Foreground" Value="#C8C8C8"/>
-                    </Style>
-                </TreeView.ItemContainerStyle>
+                        <!-- Tree view -->
+                        <TreeView x:Name="DiskTree"
+                                  ItemsSource="{Binding TreeRoots}"
+                                  SelectedItemChanged="DiskTree_SelectedItemChanged"
+                                  VirtualizingPanel.IsVirtualizing="True"
+                                  VirtualizingPanel.VirtualizationMode="Recycling"
+                                  Background="#080808"
+                                  BorderThickness="0"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                  Visibility="{Binding IsShowingSearchResults, Converter={StaticResource InvBoolToVis}}"
+                                  Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
 
-                <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type vm:DiskNodeViewModel}"
-                                              ItemsSource="{Binding Children}">
-                        <StackPanel Orientation="Horizontal" Margin="1,1">
-                            <TextBlock Text="{Binding Icon}"
-                                       FontFamily="Segoe UI Emoji"
-                                       FontSize="13"
-                                       Foreground="{StaticResource Ronin.Orange}"
-                                       VerticalAlignment="Center"
-                                       Margin="0,0,6,0"/>
-                            <TextBlock Text="{Binding Name}"
-                                       FontSize="13"
-                                       Foreground="#C8C8C8"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding SizeDisplay}"
-                                       FontSize="11"
-                                       Foreground="{StaticResource Ronin.Cyan}"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </HierarchicalDataTemplate>
-                </TreeView.Resources>
-            </TreeView>
+                            <TreeView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel/>
+                                </ItemsPanelTemplate>
+                            </TreeView.ItemsPanel>
 
-            <!-- ─────────────────────────────────────────────── COLUMN SPLIT -->
+                            <TreeView.ItemContainerStyle>
+                                <Style TargetType="TreeViewItem" BasedOn="{StaticResource RoninTreeItem}"/>
+                            </TreeView.ItemContainerStyle>
+
+                            <!-- Context menu on tree — binds through Tag to main VM -->
+                            <TreeView.ContextMenu>
+                                <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                    <MenuItem Header="🗂  Open in Explorer"
+                                              Command="{Binding OpenInExplorerCommand}"
+                                              InputGestureText="Ctrl+E"/>
+                                    <MenuItem Header="📋  Copy Path"
+                                              Command="{Binding CopyPathCommand}"
+                                              InputGestureText="Ctrl+Shift+C"/>
+                                    <Separator/>
+                                    <MenuItem Header="📦  Move…"
+                                              Command="{Binding SetMoveModeCommand}"/>
+                                    <MenuItem Header="🗑  Delete…"
+                                              Command="{Binding SetDeleteModeCommand}"/>
+                                </ContextMenu>
+                            </TreeView.ContextMenu>
+
+                            <TreeView.Resources>
+                                <HierarchicalDataTemplate DataType="{x:Type vm:DiskNodeViewModel}"
+                                                          ItemsSource="{Binding Children}">
+                                    <StackPanel Orientation="Horizontal" Margin="1,1">
+                                        <StackPanel.ToolTip>
+                                            <ToolTip Style="{StaticResource RoninTooltip}"
+                                                     Content="{Binding ToolTipText}"/>
+                                        </StackPanel.ToolTip>
+                                        <TextBlock Text="{Binding Icon}"
+                                                   FontFamily="Segoe UI Emoji"
+                                                   FontSize="13"
+                                                   Foreground="{StaticResource Ronin.Orange}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,6,0"/>
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontSize="13"
+                                                   Foreground="#C8C8C8"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding SizeDisplay}"
+                                                   FontSize="11"
+                                                   Foreground="{StaticResource Ronin.Cyan}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </HierarchicalDataTemplate>
+                            </TreeView.Resources>
+                        </TreeView>
+
+                        <!-- Search results DataGrid -->
+                        <DataGrid x:Name="SearchGrid"
+                                  ItemsSource="{Binding SearchResults}"
+                                  SelectedItem="{Binding SelectedSearchResult}"
+                                  IsReadOnly="True"
+                                  AutoGenerateColumns="False"
+                                  Background="#080808"
+                                  Foreground="#C8C8C8"
+                                  BorderThickness="0"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="{StaticResource Ronin.BorderSubtle}"
+                                  RowBackground="#080808"
+                                  AlternatingRowBackground="#0D0D0D"
+                                  ColumnHeaderHeight="26"
+                                  FontSize="12"
+                                  SelectionMode="Single"
+                                  Visibility="{Binding IsShowingSearchResults, Converter={StaticResource BoolToVis}}"
+                                  Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                    <MenuItem Header="🗂  Open in Explorer"
+                                              Command="{Binding OpenInExplorerCommand}"/>
+                                    <MenuItem Header="📋  Copy Path"
+                                              Command="{Binding CopyPathCommand}"/>
+                                    <Separator/>
+                                    <MenuItem Header="📦  Move…"
+                                              Command="{Binding SetMoveModeCommand}"/>
+                                    <MenuItem Header="🗑  Delete…"
+                                              Command="{Binding SetDeleteModeCommand}"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name"     Binding="{Binding Name}"     Width="*"/>
+                                <DataGridTextColumn Header="Type"     Binding="{Binding FileType}" Width="80"/>
+                                <DataGridTextColumn Header="Size"     Binding="{Binding SizeDisplay}" Width="70"/>
+                                <DataGridTextColumn Header="Modified" Binding="{Binding DateModified, StringFormat='{}{0:yyyy-MM-dd}'}" Width="95"/>
+                                <DataGridTextColumn Header="Path"     Binding="{Binding FullPath}"  Width="2*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                    </Grid>
+                </TabItem>
+
+                <!-- ══════════════════════════════════ TAB: TREEMAP -->
+                <TabItem Header="  Treemap  ">
+                    <ctrl:TreemapControl
+                        RootNode="{Binding TreemapRoot}"
+                        SelectedDiskNode="{Binding TreemapSelectedNode, Mode=OneWayToSource}"/>
+                </TabItem>
+
+            </TabControl>
+
+            <!-- ──────────────────────────────────── COLUMN SPLITTER -->
             <GridSplitter Grid.Column="1"
                           HorizontalAlignment="Stretch"
-                          Background="{StaticResource Ronin.Border}"/>
+                          Background="{StaticResource Ronin.Border}">
+                <GridSplitter.Style>
+                    <Style TargetType="GridSplitter">
+                        <Setter Property="Background" Value="{StaticResource Ronin.Border}"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource Ronin.BorderHover}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </GridSplitter.Style>
+            </GridSplitter>
 
-            <!-- ───────────────────────────────────────── ACTION PANEL AREA -->
-            <Grid Grid.Column="2" Background="{StaticResource Ronin.PanelBg}">
+            <!-- ─────────────────────────────────── ACTION PANEL -->
+            <TabControl Grid.Column="2"
+                        Background="{StaticResource Ronin.PanelBg}"
+                        BorderThickness="0">
 
-                <!-- Placeholder when nothing selected -->
-                <TextBlock Text="Select an item in the tree to manage it."
-                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                           FontSize="13"
-                           Foreground="{StaticResource Ronin.TextDim}"
-                           Visibility="{Binding SelectedNode, Converter={StaticResource NullToVis}, ConverterParameter=Invert}"/>
+                <!-- ═══════════════════════════════════ TAB: ACTIONS -->
+                <TabItem Header="Actions">
+                    <Grid Background="{StaticResource Ronin.PanelBg}">
 
-                <!-- Action panel -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              Visibility="{Binding SelectedNode, Converter={StaticResource NullToVis}}">
-                    <StackPanel Margin="14,10,14,14">
-
-                        <!-- Selected item info -->
-                        <TextBlock Text="SELECTED ITEM" Style="{StaticResource SectionLabel}" Margin="0,0,0,5"/>
-                        <TextBlock Text="{Binding SelectedNode.Name}"
-                                   FontSize="15" FontWeight="SemiBold"
-                                   Foreground="#E0E0E0"
-                                   TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding SelectedNode.SizeDisplay}"
-                                   FontSize="12" Margin="0,2,0,2"
-                                   Foreground="{StaticResource Ronin.CyanBright}"/>
-                        <TextBlock Text="{Binding SelectedNode.FullPath}"
-                                   FontSize="11" TextWrapping="Wrap"
-                                   Foreground="{StaticResource Ronin.CyanDim}"/>
-
-                        <Separator Margin="0,12,0,0"
-                                   Background="{StaticResource Ronin.Border}"/>
-
-                        <!-- Move / Delete toggle -->
-                        <TextBlock Text="ACTION" Style="{StaticResource SectionLabel}"/>
-                        <StackPanel Orientation="Horizontal">
-                            <RadioButton Content="  Move  "
-                                         IsChecked="{Binding IsMoveMode}"
-                                         Command="{Binding SetMoveModeCommand}"
-                                         Style="{DynamicResource MahApps.Styles.ToggleButton}"
-                                         GroupName="ActionGroup"
-                                         ToolTip="Move/Copy selected item"/>
-                            <RadioButton Content="  Delete  "
-                                         IsChecked="{Binding IsDeleteMode}"
-                                         Command="{Binding SetDeleteModeCommand}"
-                                         Style="{DynamicResource MahApps.Styles.ToggleButton}"
-                                         GroupName="ActionGroup"
-                                         ToolTip="Delete selected item"
-                                         Margin="8,0,0,0"/>
+                        <!-- Placeholder when nothing selected -->
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Visibility="{Binding SelectedNode, Converter={StaticResource NullToVis}, ConverterParameter=Invert}">
+                            <TextBlock Text="📂"
+                                       FontFamily="Segoe UI Emoji" FontSize="32"
+                                       HorizontalAlignment="Center"
+                                       Foreground="{StaticResource Ronin.OrangeDim}"
+                                       Margin="0,0,0,10"/>
+                            <TextBlock Text="Select an item to manage it."
+                                       FontSize="13"
+                                       Foreground="{StaticResource Ronin.TextDim}"
+                                       HorizontalAlignment="Center"/>
                         </StackPanel>
 
-                        <!-- ──────────────────────────────────────── MOVE PANEL -->
-                        <StackPanel Visibility="{Binding IsMoveMode, Converter={StaticResource BoolToVis}}">
+                        <!-- Action panel -->
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      Visibility="{Binding SelectedNode, Converter={StaticResource NullToVis}}">
+                            <StackPanel Margin="14,10,14,14">
 
-                            <TextBlock Text="DESTINATION" Style="{StaticResource SectionLabel}"/>
-                            <DockPanel LastChildFill="True">
-                                <Button DockPanel.Dock="Right"
-                                        Content="…" Width="34" Margin="4,0,0,0"
-                                        Command="{Binding BrowseDestinationCommand}"
-                                        ToolTip="Browse for destination folder"/>
-                                <TextBox Text="{Binding Destination, UpdateSourceTrigger=PropertyChanged}"
-                                         mah:TextBoxHelper.Watermark="e.g.  E:\Backup"
-                                         Background="#141414" Foreground="#D0D0D0"
-                                         BorderBrush="{StaticResource Ronin.Border}"
-                                         CaretBrush="{StaticResource Ronin.Cyan}"/>
-                            </DockPanel>
+                                <!-- Selected item info -->
+                                <TextBlock Text="SELECTED ITEM" Style="{StaticResource SectionLabel}" Margin="0,0,0,5"/>
 
-                            <TextBlock Text="FLAGS" Style="{StaticResource SectionLabel}"/>
+                                <Border Background="#0D0D0D"
+                                        BorderBrush="{StaticResource Ronin.BorderSubtle}"
+                                        BorderThickness="1"
+                                        CornerRadius="3"
+                                        Padding="10,8"
+                                        Margin="0,0,0,4">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding SelectedNode.Name}"
+                                                   FontSize="14" FontWeight="SemiBold"
+                                                   Foreground="#E8E8E8"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding SelectedNode.SizeDisplay}"
+                                                   FontSize="12" Margin="0,3,0,0"
+                                                   Foreground="{StaticResource Ronin.CyanBright}"/>
+                                        <TextBlock Text="{Binding SelectedNode.ChildCountText}"
+                                                   FontSize="11" Margin="0,1,0,3"
+                                                   Foreground="{StaticResource Ronin.TextMid}"
+                                                   Visibility="{Binding SelectedNode.IsDirectory, Converter={StaticResource BoolToVis}}"/>
+                                        <TextBlock Text="{Binding SelectedNode.FullPath}"
+                                                   FontSize="10" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource Ronin.CyanDim}"/>
+                                    </StackPanel>
+                                </Border>
 
-                            <CheckBox Content="Force (overwrite existing files)"
-                                      IsChecked="{Binding MoveForce}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Overwrites existing and read-only files without prompting."/>
-                            <CheckBox Content="WhatIf  (dry run — no changes made)"
-                                      IsChecked="{Binding MoveWhatIf}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Simulates the move operation and prints what would happen, without making any changes."/>
-                            <CheckBox Content="Verbose (log each moved item)"
-                                      IsChecked="{Binding MoveVerbose}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Outputs a line to the console for each file or folder that is moved."/>
-                            <CheckBox Content="NeverOverwrite (abort if destination exists)"
-                                      IsChecked="{Binding MoveNeverOverwrite}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Aborts before starting if the destination already exists, even when Force is enabled."/>
-                            <CheckBox Content="LiteralPath (treat [ and ] as literal)"
-                                      IsChecked="{Binding MoveLiteralPath}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Treats special characters like [ and ] as literal text instead of wildcards."/>
+                                <!-- Quick actions row -->
+                                <DockPanel Margin="0,6,0,0">
+                                    <Button DockPanel.Dock="Left"
+                                            Content="🗂  Explorer"
+                                            Command="{Binding OpenInExplorerCommand}"
+                                            FontSize="11" Height="26" Padding="8,0"
+                                            ToolTip="Open containing folder in Windows Explorer (Ctrl+E)"/>
+                                    <Button DockPanel.Dock="Left"
+                                            Content="📋  Copy Path"
+                                            Command="{Binding CopyPathCommand}"
+                                            FontSize="11" Height="26" Padding="8,0"
+                                            Margin="6,0,0,0"
+                                            ToolTip="Copy full path to clipboard (Ctrl+Shift+C)"/>
+                                </DockPanel>
 
-                            <TextBlock Text="FILTER  (optional)" Style="{StaticResource SectionLabel}"/>
-                            <TextBox Text="{Binding MoveFilter, UpdateSourceTrigger=PropertyChanged}"
-                                     mah:TextBoxHelper.Watermark="e.g. *.txt"
-                                     Background="#141414" Foreground="#D0D0D0"
-                                     BorderBrush="{StaticResource Ronin.Border}"
-                                     ToolTip="Fast provider-level filter. Only one pattern allowed."/>
+                                <Separator Margin="0,12,0,0"
+                                           Background="{StaticResource Ronin.Border}"/>
 
-                            <TextBlock Text="INCLUDE  (optional)" Style="{StaticResource SectionLabel}"/>
-                            <TextBox Text="{Binding MoveInclude, UpdateSourceTrigger=PropertyChanged}"
-                                     mah:TextBoxHelper.Watermark="e.g. *.png, *.jpg"
-                                     Background="#141414" Foreground="#D0D0D0"
-                                     BorderBrush="{StaticResource Ronin.Border}"
-                                     ToolTip="Comma-separated patterns to include. Supports wildcards."/>
+                                <!-- Move / Delete toggle -->
+                                <TextBlock Text="ACTION" Style="{StaticResource SectionLabel}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton Content="  Move  "
+                                                 IsChecked="{Binding IsMoveMode}"
+                                                 Command="{Binding SetMoveModeCommand}"
+                                                 Style="{DynamicResource MahApps.Styles.ToggleButton}"
+                                                 GroupName="ActionGroup"
+                                                 ToolTip="Move/Copy selected item"/>
+                                    <RadioButton Content="  Delete  "
+                                                 IsChecked="{Binding IsDeleteMode}"
+                                                 Command="{Binding SetDeleteModeCommand}"
+                                                 Style="{DynamicResource MahApps.Styles.ToggleButton}"
+                                                 GroupName="ActionGroup"
+                                                 ToolTip="Delete selected item"
+                                                 Margin="8,0,0,0"/>
+                                </StackPanel>
 
-                            <TextBlock Text="EXCLUDE  (optional)" Style="{StaticResource SectionLabel}"/>
-                            <TextBox Text="{Binding MoveExclude, UpdateSourceTrigger=PropertyChanged}"
-                                     mah:TextBoxHelper.Watermark="e.g. *.tmp, *.log"
-                                     Background="#141414" Foreground="#D0D0D0"
-                                     BorderBrush="{StaticResource Ronin.Border}"
-                                     ToolTip="Comma-separated patterns to exclude. Supports wildcards."/>
-                        </StackPanel>
+                                <!-- ──────────────────────────────────── MOVE PANEL -->
+                                <StackPanel Visibility="{Binding IsMoveMode, Converter={StaticResource BoolToVis}}">
 
-                        <!-- ────────────────────────────────────── DELETE PANEL -->
-                        <StackPanel Visibility="{Binding IsDeleteMode, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="DESTINATION" Style="{StaticResource SectionLabel}"/>
+                                    <DockPanel LastChildFill="True">
+                                        <Button DockPanel.Dock="Right"
+                                                Content="…" Width="34" Margin="4,0,0,0"
+                                                Command="{Binding BrowseDestinationCommand}"
+                                                ToolTip="Browse for destination folder"/>
+                                        <TextBox Text="{Binding Destination, UpdateSourceTrigger=PropertyChanged}"
+                                                 mah:TextBoxHelper.Watermark="e.g.  E:\Backup"
+                                                 Background="#141414" Foreground="#D0D0D0"
+                                                 BorderBrush="{StaticResource Ronin.Border}"
+                                                 CaretBrush="{StaticResource Ronin.Cyan}"/>
+                                    </DockPanel>
 
-                            <TextBlock Text="FLAGS" Style="{StaticResource SectionLabel}"/>
+                                    <TextBlock Text="FLAGS" Style="{StaticResource SectionLabel}"/>
+                                    <CheckBox Content="Force (overwrite existing files)"
+                                              IsChecked="{Binding MoveForce}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Overwrites existing and read-only files without prompting."/>
+                                    <CheckBox Content="WhatIf  (dry run — no changes made)"
+                                              IsChecked="{Binding MoveWhatIf}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Simulates the move and prints what would happen, without making any changes."/>
+                                    <CheckBox Content="Verbose (log each moved item)"
+                                              IsChecked="{Binding MoveVerbose}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Outputs a line to the console for each file or folder that is moved."/>
+                                    <CheckBox Content="NeverOverwrite (abort if destination exists)"
+                                              IsChecked="{Binding MoveNeverOverwrite}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Aborts before starting if the destination already exists."/>
+                                    <CheckBox Content="LiteralPath (treat [ and ] as literal)"
+                                              IsChecked="{Binding MoveLiteralPath}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Treats special characters like [ and ] as literal text instead of wildcards."/>
 
-                            <CheckBox Content="Force (remove read-only and hidden items)"
-                                      IsChecked="{Binding DeleteForce}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Removes read-only and hidden items without prompting."/>
-                            <CheckBox Content="Recurse  (delete folder contents)"
-                                      IsChecked="{Binding DeleteRecurse}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Deletes all files and subdirectories inside the selected folder recursively."/>
-                            <CheckBox Content="WhatIf  (dry run — no changes made)"
-                                      IsChecked="{Binding DeleteWhatIf}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Simulates the delete operation and prints what would happen, without removing anything."/>
-                            <CheckBox Content="Verbose (log each deleted item)"
-                                      IsChecked="{Binding DeleteVerbose}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Outputs a line to the console for each file or folder that is deleted."/>
-                            <CheckBox Content="LiteralPath (treat [ and ] as literal)"
-                                      IsChecked="{Binding DeleteLiteralPath}"
-                                      Style="{StaticResource FlagCheck}"
-                                      ToolTip="Treats special characters like [ and ] as literal text instead of wildcards."/>
+                                    <TextBlock Text="FILTER  (optional)" Style="{StaticResource SectionLabel}"/>
+                                    <TextBox Text="{Binding MoveFilter, UpdateSourceTrigger=PropertyChanged}"
+                                             mah:TextBoxHelper.Watermark="e.g. *.txt"
+                                             Background="#141414" Foreground="#D0D0D0"
+                                             BorderBrush="{StaticResource Ronin.Border}"
+                                             ToolTip="Fast provider-level filter. Only one pattern allowed."/>
+                                    <TextBlock Text="INCLUDE  (optional)" Style="{StaticResource SectionLabel}"/>
+                                    <TextBox Text="{Binding MoveInclude, UpdateSourceTrigger=PropertyChanged}"
+                                             mah:TextBoxHelper.Watermark="e.g. *.png, *.jpg"
+                                             Background="#141414" Foreground="#D0D0D0"
+                                             BorderBrush="{StaticResource Ronin.Border}"
+                                             ToolTip="Comma-separated patterns to include. Supports wildcards."/>
+                                    <TextBlock Text="EXCLUDE  (optional)" Style="{StaticResource SectionLabel}"/>
+                                    <TextBox Text="{Binding MoveExclude, UpdateSourceTrigger=PropertyChanged}"
+                                             mah:TextBoxHelper.Watermark="e.g. *.tmp, *.log"
+                                             Background="#141414" Foreground="#D0D0D0"
+                                             BorderBrush="{StaticResource Ronin.Border}"
+                                             ToolTip="Comma-separated patterns to exclude. Supports wildcards."/>
+                                </StackPanel>
 
-                            <TextBlock Text="FILTER  (optional)" Style="{StaticResource SectionLabel}"/>
-                            <TextBox Text="{Binding DeleteFilter, UpdateSourceTrigger=PropertyChanged}"
-                                     mah:TextBoxHelper.Watermark="e.g. *.txt"
-                                     Background="#141414" Foreground="#D0D0D0"
-                                     BorderBrush="{StaticResource Ronin.Border}"/>
+                                <!-- ────────────────────────────────── DELETE PANEL -->
+                                <StackPanel Visibility="{Binding IsDeleteMode, Converter={StaticResource BoolToVis}}">
 
-                            <TextBlock Text="INCLUDE  (optional)" Style="{StaticResource SectionLabel}"/>
-                            <TextBox Text="{Binding DeleteInclude, UpdateSourceTrigger=PropertyChanged}"
-                                     mah:TextBoxHelper.Watermark="e.g. *.tmp"
-                                     Background="#141414" Foreground="#D0D0D0"
-                                     BorderBrush="{StaticResource Ronin.Border}"/>
+                                    <TextBlock Text="FLAGS" Style="{StaticResource SectionLabel}"/>
+                                    <CheckBox Content="Force (remove read-only and hidden items)"
+                                              IsChecked="{Binding DeleteForce}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Removes read-only and hidden items without prompting."/>
+                                    <CheckBox Content="Recurse  (delete folder contents)"
+                                              IsChecked="{Binding DeleteRecurse}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Deletes all files and subdirectories inside the selected folder recursively."/>
+                                    <CheckBox Content="WhatIf  (dry run — no changes made)"
+                                              IsChecked="{Binding DeleteWhatIf}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Simulates the delete and prints what would happen, without removing anything."/>
+                                    <CheckBox Content="Verbose (log each deleted item)"
+                                              IsChecked="{Binding DeleteVerbose}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Outputs a line to the console for each file or folder that is deleted."/>
+                                    <CheckBox Content="LiteralPath (treat [ and ] as literal)"
+                                              IsChecked="{Binding DeleteLiteralPath}"
+                                              Style="{StaticResource FlagCheck}"
+                                              ToolTip="Treats special characters like [ and ] as literal text instead of wildcards."/>
 
-                            <TextBlock Text="EXCLUDE  (optional)" Style="{StaticResource SectionLabel}"/>
-                            <TextBox Text="{Binding DeleteExclude, UpdateSourceTrigger=PropertyChanged}"
-                                     mah:TextBoxHelper.Watermark="e.g. *.important"
-                                     Background="#141414" Foreground="#D0D0D0"
-                                     BorderBrush="{StaticResource Ronin.Border}"/>
+                                    <TextBlock Text="FILTER  (optional)" Style="{StaticResource SectionLabel}"/>
+                                    <TextBox Text="{Binding DeleteFilter, UpdateSourceTrigger=PropertyChanged}"
+                                             mah:TextBoxHelper.Watermark="e.g. *.txt"
+                                             Background="#141414" Foreground="#D0D0D0"
+                                             BorderBrush="{StaticResource Ronin.Border}"/>
+                                    <TextBlock Text="INCLUDE  (optional)" Style="{StaticResource SectionLabel}"/>
+                                    <TextBox Text="{Binding DeleteInclude, UpdateSourceTrigger=PropertyChanged}"
+                                             mah:TextBoxHelper.Watermark="e.g. *.tmp"
+                                             Background="#141414" Foreground="#D0D0D0"
+                                             BorderBrush="{StaticResource Ronin.Border}"/>
+                                    <TextBlock Text="EXCLUDE  (optional)" Style="{StaticResource SectionLabel}"/>
+                                    <TextBox Text="{Binding DeleteExclude, UpdateSourceTrigger=PropertyChanged}"
+                                             mah:TextBoxHelper.Watermark="e.g. *.important"
+                                             Background="#141414" Foreground="#D0D0D0"
+                                             BorderBrush="{StaticResource Ronin.Border}"/>
 
-                            <Border Background="#1C0505" CornerRadius="4"
-                                    BorderBrush="#5A0A0A" BorderThickness="1"
-                                    Margin="0,12,0,0" Padding="10,8">
-                                <TextBlock Text="⚠  This operation is permanent and cannot be undone."
-                                           Foreground="#E04040"
-                                           TextWrapping="Wrap" FontSize="12"/>
-                            </Border>
-                        </StackPanel>
+                                    <Border Background="#1C0505" CornerRadius="4"
+                                            BorderBrush="#5A0A0A" BorderThickness="1"
+                                            Margin="0,12,0,0" Padding="10,8">
+                                        <TextBlock Text="⚠  This operation is permanent and cannot be undone."
+                                                   Foreground="#E04040"
+                                                   TextWrapping="Wrap" FontSize="12"/>
+                                    </Border>
+                                </StackPanel>
 
-                        <!-- Execute button -->
-                        <Button Content="{Binding ExecuteButtonText}"
-                                Command="{Binding ExecuteActionCommand}"
-                                Height="38" Margin="0,16,0,0"
-                                FontSize="13"
-                                Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
+                                <!-- Execute button -->
+                                <Button Content="{Binding ExecuteButtonText}"
+                                        Command="{Binding ExecuteActionCommand}"
+                                        Height="38" Margin="0,16,0,0"
+                                        FontSize="13"
+                                        Style="{DynamicResource MahApps.Styles.Button.Square.Accent}"/>
 
-                    </StackPanel>
-                </ScrollViewer>
-            </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+
+            </TabControl>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════ HORIZONTAL SPLITTER -->
-        <GridSplitter Grid.Row="2"
-                      HorizontalAlignment="Stretch"
-                      Background="{StaticResource Ronin.Border}"/>
+        <!-- ══════════════════════════════════════════════ STATUS BAR -->
+        <Border Grid.Row="2"
+                Background="#0A0A0A"
+                BorderBrush="{StaticResource Ronin.BorderSubtle}"
+                BorderThickness="0,1,0,1"
+                Padding="12,4">
+            <DockPanel LastChildFill="True">
+                <!-- Keyboard shortcut hints on the right -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <TextBlock Text="Ctrl+E  Explorer"
+                               FontSize="10" Foreground="{StaticResource Ronin.TextDim}"
+                               VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Text="Ctrl+Shift+C  Copy Path"
+                               FontSize="10" Foreground="{StaticResource Ronin.TextDim}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                <!-- Main status info -->
+                <TextBlock Text="{Binding StatusBarText}"
+                           FontSize="11"
+                           FontFamily="Consolas"
+                           Foreground="{StaticResource Ronin.CyanDim}"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"/>
+            </DockPanel>
+        </Border>
 
-        <!-- ═══════════════════════════════════════════════════════════ CONSOLE -->
-        <Border Grid.Row="3"
+        <!-- ══════════════════════════════════════ HORIZONTAL SPLITTER -->
+        <GridSplitter Grid.Row="3"
+                      HorizontalAlignment="Stretch">
+            <GridSplitter.Style>
+                <Style TargetType="GridSplitter">
+                    <Setter Property="Background" Value="{StaticResource Ronin.Border}"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Ronin.BorderHover}"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </GridSplitter.Style>
+        </GridSplitter>
+
+        <!-- ══════════════════════════════════════════════════ CONSOLE -->
+        <Border Grid.Row="4"
                 Background="{StaticResource Ronin.ConsoleBg}"
                 BorderBrush="{StaticResource Ronin.Border}"
                 BorderThickness="0,1,0,0">
